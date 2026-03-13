@@ -22,16 +22,6 @@ def load_progress():
             return json.load(f).get("start_idx", 0)
     return 0
 
-def handle_security_dialog():
-    """HWP 보안 접근 팝업 자동 허용 (모두 허용 N)"""
-    while True:
-        hwnd = win32gui.FindWindow(None, "\uf53a글")
-        if hwnd:
-            win32gui.SetForegroundWindow(hwnd)
-            time.sleep(0.1)
-            pyautogui.press('n')  # 모두 허용(N)
-        time.sleep(0.5)
-
 def handle_equation_window():
     """수식 편집기 창 제어: Delete 키 누르고 초고속 종료"""
     hwnd = 0
@@ -50,13 +40,25 @@ def handle_equation_window():
         time.sleep(0.01)
         pyautogui.hotkey('shift', 'esc')
 
-def process_massive_equations(filepath, start_idx=0):
-    t_security = threading.Thread(target=handle_security_dialog, daemon=True)
-    t_security.start()
+def handle_security_dialog():                                                                                                                                                                                                      
+    """HWP 보안 접근 팝업 자동 허용 (모두 허용 N)"""                                                                                                                                                                             
+    while True:                                                                                                                                                                                                                    
+        hwnd = win32gui.FindWindow(None, "\uf53a글")                                                                                                                                                                               
+        if hwnd:                                                                                                                                                                                                                   
+            win32gui.SetForegroundWindow(hwnd)                                                                                                                                                                                     
+            time.sleep(0.1)                                                                                                                                                                                                        
+            pyautogui.press('n')  # 모두 허용(N)                                                                                                                                                                                   
+        time.sleep(0.5)                       
 
+def process_massive_equations(filepath, start_idx=0):
+    t_security = threading.Thread(target=handle_security_dialog, daemon=True)                                                                                                                                                          
+    t_security.start()
+    
     print(f"문서를 열고 수식을 스캔합니다... (start_idx={start_idx})")
     hwp = Hwp()
+    # hwp.hwp.RegisterModule("FilePathCheckDLL", "SecurityModule")
     hwp.open(filepath)
+    # hwp.open(filepath, "HWP", "forceopen:1")
 
     eq_ctrls = [c for c in hwp.ctrl_list if c.CtrlID == "eqed"]
     total_eq = len(eq_ctrls)
